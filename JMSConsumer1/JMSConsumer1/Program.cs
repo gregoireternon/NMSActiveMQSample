@@ -2,7 +2,7 @@
 using Apache.NMS.ActiveMQ;
 using Apache.NMS.ActiveMQ.Commands;
 using System;
-
+using System.Text.Json;
 namespace JMSConsumer1
 {
     class Program
@@ -48,10 +48,25 @@ namespace JMSConsumer1
         static void consumer_Listener(IMessage message)
 
         {
+            if (message is ITextMessage)
+            {
+                Console.WriteLine("Receive: " + ((ITextMessage)message).Text);
 
-            Console.WriteLine("Receive: " +     ((ITextMessage)message).Text);
+            }
+            else
+            {
+                Console.WriteLine("Receive: " + JsonSerializer.Serialize(((ActiveMQObjectMessage)message).Body));
+            }
 
         }
+
+    }
+
+    [Serializable]
+    public class Entity
+    {
+        public string Nom { get; set; }
+        public string Prenom { get; set; }
 
     }
 }

@@ -2,6 +2,7 @@
 using Apache.NMS.ActiveMQ;
 using Apache.NMS.ActiveMQ.Commands;
 using System;
+using System.Runtime.Serialization;
 using System.Threading;
 
 namespace JMSProducer
@@ -28,6 +29,14 @@ namespace JMSProducer
                         Thread.Sleep(2000);
                         string message = "coucou" + DateTime.Now.ToString();
                         Console.WriteLine("Sending message : " + message);
+                        IMessage m = prod.CreateObjectMessage(new Entity()
+                        {
+                            Nom = "TT",
+                            Prenom = message
+                        });
+                        //((ActiveMQObjectMessage)m).Formatter = new JSonFormatter
+                        prod.Send(m, MsgDeliveryMode.Persistent, MsgPriority.Normal, TimeSpan.FromSeconds(3600));
+
                         IMessage myMessage = prod.CreateTextMessage(message);
                         prod.Send(myMessage,MsgDeliveryMode.Persistent, MsgPriority.Normal,TimeSpan.FromSeconds(3600));
 
@@ -38,4 +47,14 @@ namespace JMSProducer
                 
         }
     }
+
+    [Serializable]
+    public class Entity
+    {
+        public string Nom { get; set; }
+        public string Prenom { get; set; }
+
+    }
 }
+
+
