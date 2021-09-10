@@ -49,15 +49,17 @@ namespace JMSConsumer1
         static void consumer_Listener(IMessage message)
 
         {
+            string stringMessage = null;
             if (message is ITextMessage)
             {
-                Console.WriteLine("Receive: " + ((ITextMessage)message).Text);
+                stringMessage = ((ITextMessage)message).Text;
 
             }
             else
             {
-                Console.WriteLine("Receive: " + JsonSerializer.Serialize(((ActiveMQObjectMessage)message).Body));
+                stringMessage = JsonSerializer.Serialize(((ActiveMQObjectMessage)message).Body);
             }
+            Console.WriteLine("Receive: " + stringMessage);
             try
             {
                 Console.WriteLine("Canal: " + message.Properties.GetInt("Canal"));
@@ -70,13 +72,14 @@ namespace JMSConsumer1
             {
                 IDestination replyDest = message.NMSReplyTo;
                 IMessageProducer prd= session.CreateProducer(null);
-                IMessage reply = prd.CreateTextMessage("Received");
-                reply.NMSCorrelationID = message.NMSCorrelationID;
+                IMessage reply = prd.CreateTextMessage($"Received:{stringMessage}");
+                //reply.NMSCorrelationID = message.NMSCorrelationID;
                 try
                 {
                     prd.Send(replyDest, reply);
-
-                }catch(Exception e)
+                    Console.WriteLine("reply sent");
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine("Can't send reply" );
                 }

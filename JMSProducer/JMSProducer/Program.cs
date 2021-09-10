@@ -45,6 +45,7 @@ namespace JMSProducer
                         Console.WriteLine("canal : " + i);
                         m.Properties.SetInt("Canal", i);
                         m.NMSReplyTo=replyQueue;
+                        //m.NMSCorrelationID = Guid.NewGuid().ToString();
                         prod.Send(m, MsgDeliveryMode.Persistent, MsgPriority.Normal, TimeSpan.FromSeconds(3600));
 
                         IMessage myMessage = prod.CreateTextMessage(message);
@@ -65,18 +66,27 @@ namespace JMSProducer
                 Uri providerUri = new Uri(ip);
                 IConnection conn = null;
                 IConnectionFactory factory = new ConnectionFactory(ip);
+                
                 using (conn = factory.CreateConnection())
                 {
+                    
                     conn.Start();
                     using (ISession ses = conn.CreateSession())
                     {
                         replyQueue = new ActiveMQQueue("prod1ReplyQueue");
+                        //replyQueue = ses.CreateTemporaryQueue();
                         IMessageConsumer replyConsumer = ses.CreateConsumer(replyQueue);
-                        replyConsumer.Listener += new MessageListener(ReplyReceived);
+                        //replyConsumer.Listener += new MessageListener(ReplyReceived);
+                        while (true)
+                        {
+                            IMessage response = replyConsumer.Receive();
+                            Console.WriteLine("Reply Receive: " + ((ITextMessage)response).Text);
+
+                        }
                     }
-                    Console.WriteLine("Reply Dest set up");
 
                 }
+                Console.WriteLine("Reply Dest connection closed");
 
             });
 
