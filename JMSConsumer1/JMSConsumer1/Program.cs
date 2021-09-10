@@ -32,7 +32,7 @@ namespace JMSConsumer1
 
                     //Create the Consumer
 
-                    IMessageConsumer consumer = session.CreateDurableConsumer(new ActiveMQTopic("myTopic"),clientId, "Canal=2",false);
+                    IMessageConsumer consumer = session.CreateDurableConsumer(new ActiveMQTopic("myTopic.#"),clientId, "Canal=2",false);
 
                     consumer.Listener += new MessageListener(
 

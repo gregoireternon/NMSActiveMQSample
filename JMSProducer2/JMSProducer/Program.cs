@@ -1,11 +1,11 @@
 ﻿using Apache.NMS;
 using Apache.NMS.ActiveMQ;
 using Apache.NMS.ActiveMQ.Commands;
+using JMSProducer;
 using System;
-using System.Runtime.Serialization;
 using System.Threading;
 
-namespace JMSProducer
+namespace JMSProducer2
 {
     class Program
     {
@@ -28,13 +28,13 @@ namespace JMSProducer
                 {
                     
 
-                    IMessageProducer prod = ses.CreateProducer(new ActiveMQTopic("myTopic.rouen"));
+                    IMessageProducer prod = ses.CreateProducer(new ActiveMQTopic("myTopic.paris"));
                     int i= 1;
                     while (true)
                     {
                         i = (i + 1) % 10;
                         Thread.Sleep(400);
-                        string message = "coucou" + DateTime.Now.ToString();
+                        string message = "paris" + DateTime.Now.ToString();
                         Console.WriteLine("Sending message : " + message);
                         IMessage m = prod.CreateObjectMessage(new Entity()
                         {
@@ -99,13 +99,6 @@ namespace JMSProducer
         }
     }
 
-    [Serializable]
-    public class Entity
-    {
-        public string Nom { get; set; }
-        public string Prenom { get; set; }
-
-    }
 }
 
 
