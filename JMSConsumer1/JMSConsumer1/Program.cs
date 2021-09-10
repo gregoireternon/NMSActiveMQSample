@@ -7,6 +7,7 @@ namespace JMSConsumer1
 {
     class Program
     {
+        static ISession session;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
@@ -25,13 +26,13 @@ namespace JMSConsumer1
 
                 //Create the Session
 
-                using (ISession session = connection.CreateSession())
+                using (session = connection.CreateSession())
 
                 {
 
                     //Create the Consumer
 
-                    IMessageConsumer consumer = session.CreateDurableConsumer(new ActiveMQTopic("myTopic"),clientId, null,false);
+                    IMessageConsumer consumer = session.CreateDurableConsumer(new ActiveMQTopic("myTopic"),clientId, "Canal=2",false);
 
                     consumer.Listener += new MessageListener(
 
@@ -57,7 +58,31 @@ namespace JMSConsumer1
             {
                 Console.WriteLine("Receive: " + JsonSerializer.Serialize(((ActiveMQObjectMessage)message).Body));
             }
+            try
+            {
+                Console.WriteLine("Canal: " + message.Properties.GetInt("Canal"));
 
+            }catch(Exception e)
+            {
+                Console.WriteLine("Pas de canal") ;
+            }
+            if (message.NMSReplyTo != null)
+            {
+                IDestination replyDest = message.NMSReplyTo;
+                IMessageProducer prd= session.CreateProducer(null);
+                IMessage reply = prd.CreateTextMessage("Received");
+                reply.NMSCorrelationID = message.NMSCorrelationID;
+                try
+                {
+                    prd.Send(replyDest, reply);
+
+                }catch(Exception e)
+                {
+                    Console.WriteLine("Can't send reply" );
+                }
+
+
+            }
         }
 
     }

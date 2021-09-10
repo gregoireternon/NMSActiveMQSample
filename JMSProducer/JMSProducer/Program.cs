@@ -9,6 +9,8 @@ namespace JMSProducer
 {
     class Program
     {
+        static Thread replyThread = null;
+        static IDestination replyQueue;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
@@ -16,6 +18,10 @@ namespace JMSProducer
             Uri providerUri = new Uri(ip);
             IConnection conn = null;
             IConnectionFactory factory = new ConnectionFactory(ip);
+
+            StartReplyThread();
+
+
             using (conn = factory.CreateConnection())
             {
                 using(ISession ses = conn.CreateSession())
@@ -23,10 +29,11 @@ namespace JMSProducer
                     
 
                     IMessageProducer prod = ses.CreateProducer(new ActiveMQTopic("myTopic"));
-
+                    int i= 1;
                     while (true)
                     {
-                        Thread.Sleep(2000);
+                        i = (i + 1) % 10;
+                        Thread.Sleep(400);
                         string message = "coucou" + DateTime.Now.ToString();
                         Console.WriteLine("Sending message : " + message);
                         IMessage m = prod.CreateObjectMessage(new Entity()
@@ -35,6 +42,9 @@ namespace JMSProducer
                             Prenom = message
                         });
                         //((ActiveMQObjectMessage)m).Formatter = new JSonFormatter
+                        Console.WriteLine("canal : " + i);
+                        m.Properties.SetInt("Canal", i);
+                        m.NMSReplyTo=replyQueue;
                         prod.Send(m, MsgDeliveryMode.Persistent, MsgPriority.Normal, TimeSpan.FromSeconds(3600));
 
                         IMessage myMessage = prod.CreateTextMessage(message);
@@ -45,6 +55,37 @@ namespace JMSProducer
                 }
             }
                 
+        }
+
+        private static void StartReplyThread()
+        {
+            replyThread = new Thread(() =>
+            {
+                string ip = "tcp://localhost:61616";
+                Uri providerUri = new Uri(ip);
+                IConnection conn = null;
+                IConnectionFactory factory = new ConnectionFactory(ip);
+                using (conn = factory.CreateConnection())
+                {
+                    conn.Start();
+                    using (ISession ses = conn.CreateSession())
+                    {
+                        replyQueue = new ActiveMQQueue("prod1ReplyQueue");
+                        IMessageConsumer replyConsumer = ses.CreateConsumer(replyQueue);
+                        replyConsumer.Listener += new MessageListener(ReplyReceived);
+                    }
+                    Console.WriteLine("Reply Dest set up");
+
+                }
+
+            });
+
+            replyThread.Start();
+        }
+
+        private static void ReplyReceived(IMessage message)
+        {
+            Console.WriteLine("Reply Receive: " + ((ITextMessage)message).Text);
         }
     }
 
