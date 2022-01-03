@@ -12,7 +12,8 @@ Sur cette page, nous allons voir pourquoi,
 - en avançant d’abord une hypothèse de POC 
 - en décrivant ensuite comment on y parvient
 
-##Hypothèse
+## Hypothèse
+
 Objectifs: 
 - Voir dans quelle mesure il est possible de découpler des services en utilisant le messaging
 - Voir dans quelle mesure nous pouvons envisager les montées de version et même les “breaking changes” entre plusieurs microservices
